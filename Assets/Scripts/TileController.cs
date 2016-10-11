@@ -19,6 +19,9 @@ public class TileController : MonoBehaviour {
     public int maxZoomLvl = 1;
     public int row = 0;
     public int column = 0;
+    public GameObject Tiles;
+    public GameObject Controller;
+    public Light LightSource;
 
     private Texture2D t0Tex;
     private Texture2D t1Tex;
@@ -36,6 +39,13 @@ public class TileController : MonoBehaviour {
 	private int count = 0;
 	private bool display = false;
     private bool maxZoomLvlReached = false;
+    private float angle = 0;
+    private float rotateAngle = 0;
+    private bool scroll = false;
+    private bool left = false;
+    private bool moved = true;
+    private bool up = false;
+    private bool getTiles = false;
 
     /// <summary>
     /// Awake is called when the script instance is being loaded.
@@ -72,10 +82,19 @@ public class TileController : MonoBehaviour {
 		{
             Debug.Log("Run in update");
             StartCoroutine(CoGetTiles());
+            StartCoroutine(CoCheckBounds());
             StartCoroutine(CoSetTiles());
 			zIn = false;
 		}
-		
+
+		if (scroll)
+        {
+            StartCoroutine(CoGetTiles());
+            StartCoroutine(CoCheckBounds());
+            StartCoroutine(CoSetTiles());
+            scroll = false;
+            moved = true;
+        }
 	}
 
 	public void ZoomIn()
@@ -92,13 +111,6 @@ public class TileController : MonoBehaviour {
             Debug.Log("zIn = true");
             zIn = true;
         }
-        
-	}
-
-	IEnumerator CoZoomIn()
-    {
-		display = true;
-		yield return null;
 	}
 
     // Loads the tiles from the Resources folder
@@ -108,7 +120,7 @@ public class TileController : MonoBehaviour {
         t0Tex = Resources.Load("Images/"+zoomLvl + "/zoom" + (row - 1) + "xx" + (column - 1)) as Texture2D;
         t1Tex = Resources.Load("Images/" + zoomLvl + "/zoom" + (row - 1) + "xx" + column) as Texture2D;
         t2Tex = Resources.Load("Images/" + zoomLvl + "/zoom" + (row - 1) + "xx" + (column + 1)) as Texture2D;
-        t3Tex = Resources.Load("Images/" + zoomLvl + "/zoom" + (row - 1) + "xx" + (column + 1)) as Texture2D;
+        t3Tex = Resources.Load("Images/" + zoomLvl + "/zoom" + (row - 1) + "xx" + (column + 2)) as Texture2D;
 
         t4Tex = Resources.Load("Images/" + zoomLvl + "/zoom" + row + "xx" + (column - 1)) as Texture2D;
         t5Tex = Resources.Load("Images/" + zoomLvl + "/zoom" + row + "xx" + column) as Texture2D;
@@ -160,4 +172,83 @@ public class TileController : MonoBehaviour {
         }
     }
 
+    IEnumerator CoTurn()
+    {
+        angle = Camera.main.transform.eulerAngles.y;
+        var rads = angle * ((Mathf.PI * 2) / 360);
+
+        Tiles.transform.position = new Vector3(((Mathf.Sin(rads) * 10)), 0, (Mathf.Cos(rads) * 10));
+        yield return null;
+        Tiles.transform.eulerAngles = new Vector3(0, angle, 0);
+        yield return null;
+
+        Controller.transform.position = new Vector3(((Mathf.Sin(rads) * 10)), 0, (Mathf.Cos(rads) * 10));
+        yield return null;
+        Controller.transform.eulerAngles = new Vector3(0, angle, 0);
+        yield return null;
+
+        LightSource.transform.eulerAngles = new Vector3(0, angle, 0);
+    }
+
+    public void ScrollLeft()
+    {
+        left = true;
+        column -= 1;
+        scroll = true;
+    }
+
+    public void ScrollRight()
+    {
+        ++column;
+        scroll = true;
+    }
+
+    public void ScrollUp()
+    {
+        if (moved)
+        {
+            moved = false;
+            up = true;
+            --row;
+            scroll = true;
+            
+        }
+    }
+
+    public void ScrollDown()
+    {
+        if (moved)
+        {
+            moved = false;
+            ++row;
+            scroll = true;
+        }
+    }
+
+    IEnumerator CoCheckBounds()
+    {
+        if (t0Tex == null && left)
+        {
+            column += 1;
+            left = false;
+            getTiles = true;
+        }
+        else if (t0Tex == null && up)
+        {
+            row += 1;
+            up = false;
+            getTiles = true;
+        }
+        else if (t3Tex == null)
+        {
+            column -= 1;
+            getTiles = true;
+        }
+        else if (t8Tex == null)
+        {
+            row -= 1;
+            getTiles = true;
+        }
+        yield return null;
+    }
 }
