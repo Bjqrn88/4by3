@@ -142,7 +142,6 @@ public class TileController : MonoBehaviour {
 
     IEnumerator CoSetTiles()
     {
-        Debug.Log("CoSetTiles()");
         t0.material.mainTexture = t0Tex;
         t1.material.mainTexture = t1Tex;
         t2.material.mainTexture = t2Tex;
@@ -180,7 +179,8 @@ public class TileController : MonoBehaviour {
 
     public void Turn()
     {
-        turn = true;
+        //turn = true;
+        StartCoroutine(CoTurn());
     }
 
     IEnumerator CoTurn()
@@ -188,12 +188,14 @@ public class TileController : MonoBehaviour {
         angle = Camera.main.transform.eulerAngles.y;
         var rads = angle * ((Mathf.PI * 2) / 360);
 
-        Tiles.transform.position = new Vector3(((Mathf.Sin(rads) * 10)), 0, (Mathf.Cos(rads) * 10));
+        //les.transform.Translate((Mathf.Sin(rads) * 8), 0, (Mathf.Cos(rads) * 8));
+
+        Tiles.transform.position = new Vector3(((Mathf.Sin(rads) * 8)), 0, (Mathf.Cos(rads) * 8));
         yield return null;
         Tiles.transform.eulerAngles = new Vector3(0, angle, 0);
         yield return null;
 
-        Controller.transform.position = new Vector3(((Mathf.Sin(rads) * 10)), 0, (Mathf.Cos(rads) * 10));
+        Controller.transform.position = new Vector3(((Mathf.Sin(rads) * 8)), 0, (Mathf.Cos(rads) * 8));
         yield return null;
         Controller.transform.eulerAngles = new Vector3(0, angle, 0);
         yield return null;
