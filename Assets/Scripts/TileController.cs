@@ -46,6 +46,7 @@ public class TileController : MonoBehaviour {
     private bool moved = true;
     private bool up = false;
     private bool getTiles = false;
+    private bool turn = false;
 
     /// <summary>
     /// Awake is called when the script instance is being loaded.
@@ -77,7 +78,6 @@ public class TileController : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
-
 		if (zIn)
 		{
             Debug.Log("Run in update");
@@ -89,11 +89,17 @@ public class TileController : MonoBehaviour {
 
 		if (scroll)
         {
+            scroll = false;
             StartCoroutine(CoGetTiles());
             StartCoroutine(CoCheckBounds());
             StartCoroutine(CoSetTiles());
-            scroll = false;
             moved = true;
+        }
+
+        if (turn)
+        {
+            turn = false;
+            StartCoroutine(CoTurn());
         }
 	}
 
@@ -170,6 +176,11 @@ public class TileController : MonoBehaviour {
         {
             column = column + (colNum * 2);
         }
+    }
+
+    public void Turn()
+    {
+        turn = true;
     }
 
     IEnumerator CoTurn()
