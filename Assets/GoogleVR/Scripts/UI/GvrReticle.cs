@@ -53,11 +53,17 @@ public class GvrReticle : MonoBehaviour, IGvrGazePointer {
   // before distance multiplication.
   private float reticleInnerDiameter = 0.0f;
   private float reticleOuterDiameter = 0.0f;
+  
+  // The script on my tiles
+  private TileController tiles;
 
   void Start () {
     CreateReticleVertices();
 
     materialComp = gameObject.GetComponent<Renderer>().material;
+
+    // I made this
+    tiles = GameObject.FindGameObjectWithTag("Tiles").GetComponent<TileController>();
   }
 
   void OnEnable() {
@@ -72,6 +78,73 @@ public class GvrReticle : MonoBehaviour, IGvrGazePointer {
 
   void Update() {
     UpdateDiameters();
+  }
+
+  /// I added this
+  void FixedUpdate()
+  {
+      if (Camera.main.transform.rotation.z > 0.15)
+      {
+        tiles.ZoomOut();
+      }
+
+      if (Camera.main.transform.rotation.z < -0.15)
+      {
+          switch (targetObj.name)
+          {
+            case "0":
+              tiles.SetColumn(0);
+              tiles.SetRow(0);
+              break;
+            case "1":
+              tiles.SetColumn(1);
+              tiles.SetRow(0);
+              break;
+            case "2":
+              tiles.SetColumn(2);
+              tiles.SetRow(0);
+              break;
+            case "3":
+              tiles.SetColumn(3);
+              tiles.SetRow(0);
+              break;
+            case "4":
+              tiles.SetColumn(0);
+              tiles.SetRow(1);
+              break;
+            case "5":
+              tiles.SetColumn(1);
+              tiles.SetRow(1);
+              break;
+            case "6":
+              tiles.SetColumn(2);
+              tiles.SetRow(1);
+              break;
+            case "7":
+              tiles.SetColumn(3);
+              tiles.SetRow(1);
+              break;
+            case "8":
+              tiles.SetColumn(0);
+              tiles.SetRow(20);
+              break;
+            case "9":
+              tiles.SetColumn(1);
+              tiles.SetRow(2);
+              break;
+            case "10":
+              tiles.SetColumn(20);
+              tiles.SetRow(2);
+              break;
+            case "11":
+              tiles.SetColumn(3);
+              tiles.SetRow(2);
+              break;
+            default:
+              break;
+          }
+          tiles.ZoomIn();
+      }
   }
 
   /// This is called when the 'BaseInputModule' system should be enabled.
@@ -101,8 +174,11 @@ public class GvrReticle : MonoBehaviour, IGvrGazePointer {
   /// The camera is the event camera, the target is the object the user is
   /// looking at, and the intersectionPosition is the intersection point of the
   /// ray sent from the camera on the object.
-  public void OnGazeStay(Camera camera, GameObject targetObject, Vector3 intersectionPosition,
-                         bool isInteractive) {
+  public void OnGazeStay(Camera camera, GameObject targetObject, Vector3 intersectionPosition, bool isInteractive) {
+    
+    // Yeah I added this.
+    targetObj = targetObject;
+
     SetGazeTarget(intersectionPosition, isInteractive);
   }
 

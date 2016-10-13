@@ -17,11 +17,12 @@ public class TileController : MonoBehaviour {
 	public Renderer t11;
 	public int zoomLvl = 2;
     public int maxZoomLvl = 1;
-    public int row = 0;
-    public int column = 0;
+    public int row = 1;
+    public int column = 1;
     public GameObject Tiles;
     public GameObject Controller;
     public Light LightSource;
+    public float rotateSpeed;
 
     private Texture2D t0Tex;
     private Texture2D t1Tex;
@@ -36,17 +37,16 @@ public class TileController : MonoBehaviour {
     private Texture2D t10Tex;
     private Texture2D t11Tex;
     private bool zIn = false;
-	private int count = 0;
-	private bool display = false;
+    private bool zOut = false;
     private bool maxZoomLvlReached = false;
-    private float angle = 0;
-    private float rotateAngle = 0;
+    private float camAngle = 0;
+    private float tileAngle = 0;
     private bool scroll = false;
     private bool left = false;
     private bool moved = true;
     private bool up = false;
-    private bool getTiles = false;
-    private bool turn = false;
+    private bool turnRight = false;
+    private bool turnLeft = false;
 
     /// <summary>
     /// Awake is called when the script instance is being loaded.
@@ -78,14 +78,24 @@ public class TileController : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+        if (Input.GetKeyDown(KeyCode.Escape)) 
+            Application.Quit(); 
+
 		if (zIn)
 		{
-            Debug.Log("Run in update");
             StartCoroutine(CoGetTiles());
             StartCoroutine(CoCheckBounds());
             StartCoroutine(CoSetTiles());
 			zIn = false;
 		}
+
+        if (zOut)
+        {
+            StartCoroutine(CoGetTiles());
+			StartCoroutine(CoCheckBounds());
+			StartCoroutine(CoSetTiles());
+            zOut = false;
+        }
 
 		if (scroll)
         {
@@ -96,12 +106,61 @@ public class TileController : MonoBehaviour {
             moved = true;
         }
 
-        if (turn)
+        if (turnRight)
         {
-            turn = false;
-            StartCoroutine(CoTurn());
+            tileAngle += rotateSpeed* Time.deltaTime;
+
+            if (tileAngle >= camAngle)
+            {
+                turnRight = false;
+                var radss = camAngle * ((Mathf.PI * 2) / 360);
+                Tiles.transform.position = new Vector3(((Mathf.Sin(radss) * 8)), 0, (Mathf.Cos(radss) * 8));
+                Tiles.transform.eulerAngles = new Vector3(0, camAngle, 0);
+                Controller.transform.position = new Vector3(((Mathf.Sin(radss) * 8)), 0, (Mathf.Cos(radss) * 8));
+                Controller.transform.eulerAngles = new Vector3(0, camAngle, 0);
+                LightSource.transform.eulerAngles = new Vector3(0, camAngle, 0);
+            }else{
+                var rads = tileAngle * ((Mathf.PI * 2) / 360);
+                Tiles.transform.position = new Vector3(((Mathf.Sin(rads) * 8)), 0, (Mathf.Cos(rads) * 8));
+                Tiles.transform.eulerAngles = new Vector3(0, tileAngle, 0);
+                Controller.transform.position = new Vector3(((Mathf.Sin(rads) * 8)), 0, (Mathf.Cos(rads) * 8));
+                Controller.transform.eulerAngles = new Vector3(0, tileAngle, 0);
+                LightSource.transform.eulerAngles = new Vector3(0, tileAngle, 0);
+            }
+        }
+
+        if (turnLeft)
+        {
+            tileAngle -= rotateSpeed* Time.deltaTime;
+
+            if (tileAngle <= camAngle)
+            {
+                turnLeft = false;
+                var radss = camAngle * ((Mathf.PI * 2) / 360);
+                Tiles.transform.position = new Vector3(((Mathf.Sin(radss) * 8)), 0, (Mathf.Cos(radss) * 8));
+                Tiles.transform.eulerAngles = new Vector3(0, camAngle, 0);
+                Controller.transform.position = new Vector3(((Mathf.Sin(radss) * 8)), 0, (Mathf.Cos(radss) * 8));
+                Controller.transform.eulerAngles = new Vector3(0, camAngle, 0);
+                LightSource.transform.eulerAngles = new Vector3(0, camAngle, 0);
+            }else{
+                var rads = tileAngle * ((Mathf.PI * 2) / 360);
+                Tiles.transform.position = new Vector3(((Mathf.Sin(rads) * 8)), 0, (Mathf.Cos(rads) * 8));
+                Tiles.transform.eulerAngles = new Vector3(0, tileAngle, 0);
+                Controller.transform.position = new Vector3(((Mathf.Sin(rads) * 8)), 0, (Mathf.Cos(rads) * 8));
+                Controller.transform.eulerAngles = new Vector3(0, tileAngle, 0);
+                LightSource.transform.eulerAngles = new Vector3(0, tileAngle, 0);
+            }
         }
 	}
+
+    public void ZoomOut()
+    {
+        if (!(zoomLvl >= 2)) {
+			zoomLvl += 1;
+			column = column/2;
+			row = row/2;
+		}
+    }
 
 	public void ZoomIn()
     {
@@ -109,12 +168,10 @@ public class TileController : MonoBehaviour {
         if (zoomLvl < maxZoomLvl)
         {
             maxZoomLvlReached = true;
-            Debug.Log("Max ZoomLvl");
             zoomLvl = maxZoomLvl;
         }
         else
         {
-            Debug.Log("zIn = true");
             zIn = true;
         }
 	}
@@ -122,7 +179,6 @@ public class TileController : MonoBehaviour {
     // Loads the tiles from the Resources folder
     IEnumerator CoGetTiles()
     {
-        Debug.Log("CoGetTiles()");
         t0Tex = Resources.Load("Images/"+zoomLvl + "/zoom" + (row - 1) + "xx" + (column - 1)) as Texture2D;
         t1Tex = Resources.Load("Images/" + zoomLvl + "/zoom" + (row - 1) + "xx" + column) as Texture2D;
         t2Tex = Resources.Load("Images/" + zoomLvl + "/zoom" + (row - 1) + "xx" + (column + 1)) as Texture2D;
@@ -177,30 +233,18 @@ public class TileController : MonoBehaviour {
         }
     }
 
-    public void Turn()
+    public void TurnRight()
     {
-        //turn = true;
-        StartCoroutine(CoTurn());
+        camAngle = Camera.main.transform.eulerAngles.y;
+        tileAngle = Tiles.transform.eulerAngles.y;
+        turnRight = true;
     }
-
-    IEnumerator CoTurn()
+        
+    public void TurnLeft()
     {
-        angle = Camera.main.transform.eulerAngles.y;
-        var rads = angle * ((Mathf.PI * 2) / 360);
-
-        //les.transform.Translate((Mathf.Sin(rads) * 8), 0, (Mathf.Cos(rads) * 8));
-
-        Tiles.transform.position = new Vector3(((Mathf.Sin(rads) * 8)), 0, (Mathf.Cos(rads) * 8));
-        yield return null;
-        Tiles.transform.eulerAngles = new Vector3(0, angle, 0);
-        yield return null;
-
-        Controller.transform.position = new Vector3(((Mathf.Sin(rads) * 8)), 0, (Mathf.Cos(rads) * 8));
-        yield return null;
-        Controller.transform.eulerAngles = new Vector3(0, angle, 0);
-        yield return null;
-
-        LightSource.transform.eulerAngles = new Vector3(0, angle, 0);
+        camAngle = Camera.main.transform.eulerAngles.y;
+        tileAngle = Tiles.transform.eulerAngles.y;
+        turnLeft = true;
     }
 
     public void ScrollLeft()
@@ -212,7 +256,7 @@ public class TileController : MonoBehaviour {
 
     public void ScrollRight()
     {
-        ++column;
+        column += 1;
         scroll = true;
     }
 
@@ -224,7 +268,6 @@ public class TileController : MonoBehaviour {
             up = true;
             --row;
             scroll = true;
-            
         }
     }
 
@@ -244,23 +287,23 @@ public class TileController : MonoBehaviour {
         {
             column += 1;
             left = false;
-            getTiles = true;
+            StartCoroutine(CoGetTiles());
         }
         else if (t0Tex == null && up)
         {
             row += 1;
             up = false;
-            getTiles = true;
+            StartCoroutine(CoGetTiles());
         }
         else if (t3Tex == null)
         {
             column -= 1;
-            getTiles = true;
+            StartCoroutine(CoGetTiles());
         }
         else if (t8Tex == null)
         {
             row -= 1;
-            getTiles = true;
+            StartCoroutine(CoGetTiles());
         }
         yield return null;
     }
